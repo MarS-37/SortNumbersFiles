@@ -275,5 +275,17 @@ int main()
 	res.open(resultFileName, std::fstream::out | std::ofstream::trunc);
 	res.close();
 
+	// file sorting
+	SortingManager::RunSort(sourceFileName, resultFileName);
+
+	// deletion request
+	char choice;
+	std::cout << "Delete temporary files? (y/n): ";
+	std::cin >> choice;
+	if (choice == 'y' or choice == 'Y') {
+		// Delete temporary files
+		FileManager::DeletedFiles();
+	}
+
 	return EXIT_SUCCESS;
 }
