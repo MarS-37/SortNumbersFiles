@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                         SortNumberFiles                          |
+//|                         SortNumbersFiles                         |
 //|       tutorial program for sorting numbers in large files        |
 //|                                                                  |
 //|                                      Copyright 2024, Mars37 Ltd. |
@@ -77,8 +77,34 @@ class FileManager
 {
 public:
     static void CreateRandFile(const std::string& filename)
-    {
+    {        
+        // файловая переменная
+        std::fstream fs;
 
+        // инициализация генератора
+        srand(static_cast<unsigned int>(time(NULL)));
+
+        // константы диапазона
+        const int low = -1'000;
+        const int high = 4'000;
+
+        // открытие фала
+        fs.open(filename, std::fstream::out | std::ofstream::trunc);
+
+        // проверка открытия файла
+        if (fs.is_open()) {
+            std::cout << "File " << filename << " created\n";
+
+            // цикл наполнения файла числами
+            for (int i = 0; i < LINE_IN_FILE; ++i) {
+                fs << (low + rand() % high) << std::endl;
+            }
+
+            // закрытие файла
+            fs.close();
+
+            std::cout << "File " << filename << " full\n";
+        }
     }
     static void MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
     {
