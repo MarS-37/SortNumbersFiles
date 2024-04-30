@@ -6,6 +6,7 @@
 //|                                       markin.sergey.37@yandex.ru |
 //+------------------------------------------------------------------+
 
+
 #include <string>
 #include <ctime>
 #include <chrono>
@@ -15,8 +16,8 @@
 
 
 // size constants
-#define LINE_IN_FILE 20
-#define TMP_BLOCK    5
+#define LINE_IN_FILE	20'000'000
+#define TMP_BLOCK		5'000'000
 
 
 class Sorting
@@ -25,10 +26,18 @@ public:
 	template <typename T>
 	static void MergeSort(T* arr, int low, int high)
 	{
+		// algorithm condition
 		if (low < high) {
+			// find the middle of the array
 			int mid = low + (high - low) / 2;
+
+			// recursively sort left half of the array
 			MergeSort(arr, low, mid);
+
+			// recursively sort right half of the array
 			MergeSort(arr, mid + 1, high);
+
+			// merge sorted halves of the array
 			Merge(arr, low, mid, high);
 		}
 	}
@@ -37,19 +46,22 @@ private:
 	template <typename T>
 	static void Merge(T* arr, int low, int mid, int high)
 	{
+		// calculate dimensions of the halves
 		int n1 = mid - low + 1;
 		int n2 = high - mid;
 
+		// create temporary arrays to store halves
 		T* left = new T[n1];
 		T* right = new T[n2];
 
+		// copy data to temporary arrays
 		for (int i = 0; i < n1; i++)
 			left[i] = arr[low + i];
 		for (int j = 0; j < n2; j++)
 			right[j] = arr[mid + 1 + j];
 
+		// merge temporary arrays back into the main array
 		int i = 0, j = 0, k = low;
-
 		while (i < n1 && j < n2) {
 			if (left[i] <= right[j]) {
 				arr[k++] = left[i++];
@@ -59,14 +71,17 @@ private:
 			}
 		}
 
+		// copy the remaining elements from the left array
 		while (i < n1) {
 			arr[k++] = left[i++];
 		}
 
+		// copy the remaining elements from the right array
 		while (j < n2) {
 			arr[k++] = right[j++];
 		}
 
+		// free the allocated memory
 		delete[] left;
 		delete[] right;
 	}
@@ -98,7 +113,7 @@ public:
 
 		std::cout << "File " << filename << " created\n";
 
-		// fill the file with numbers
+		// fill the file with numbers		
 		for (int i = 0; i < LINE_IN_FILE; i++) {
 			fs << (low + rand() % high) << std::endl;
 		}
@@ -110,23 +125,17 @@ public:
 	}
 	static void MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
 	{
-		// переменая для работы с временным файлом
+		// file variable
 		std::fstream temp;
 
-		// константы для сортировки двух чисел
+		// array pointers
 		const int* first;
 		const int* second;
 
-		if (arr1[0] < arr2[0]) {
-		    // константы получают значение
-		    first = arr1;
-		    second = arr2;
-		}
-
-		// открытие файла
 		temp.open("tmp1.txt", std::fstream::out | std::ofstream::trunc);
 
-		// определяем очередность массивов
+		// selection of the first and second arrays 
+		// depending on the value of the first element
 		if (arr1[0] < arr2[0]) {
 			first = arr1;
 			second = arr2;
@@ -137,69 +146,72 @@ public:
 			std::swap(elements1, elements2);
 		}
 
-		// проверка открытия файла
-		if (!temp.is_open()) {
-			// исключение runtime_error
-			throw std::runtime_error("Failed to open file for reading.");
+		// file opening check
+		if (!temp.is_open())
+		{
+			throw std::runtime_error("Failed to open temp file for writing");
 		}
 
-		// переменные обхода блоков
+		// value position
 		int i = 0;
 		int j = 0;
 
-		// цикл слияния массивов
+		// sorting
 		while (i < elements1 && j < elements2) {
-			// значение 1 меньше значения 2
 			if (first[i] < second[j]) {
-				// пишем в txt1.txt
 				temp << first[i++] << std::endl;
 			}
-			// если значения равны
-			else if(first[i] == second[j]) {
-
+			else if (first[i] == second[j]) {
+				temp << first[i++] << std::endl;
+				temp << second[j++] << std::endl;
 			}
 			else {
 				temp << second[j++] << std::endl;
 			}
 		}
-		// если в массиве остались элементы
 		while (i < elements1) {
 			temp << first[i++] << std::endl;
 		}
-		// если в массиве остались элементы
 		while (j < elements2) {
 			temp << second[j++] << std::endl;
 		}
 
+		// close file
 		temp.close();
+
 	}
 	static void MergeFiles(const std::string& resultfilename)
 	{
+		// files variables
 		std::fstream res;
 		std::fstream temp1;
 		std::fstream temp2;
 
+		// temporary file name
 		const std::string& tmp1 = "tmp1.txt";
 		const std::string& tmp2 = "tmp2.txt";
 
+		// files opening
 		temp1.open(tmp1, std::fstream::in);
 		res.open(resultfilename, std::fstream::in);
 		temp2.open(tmp2, std::fstream::out | std::ofstream::trunc);
 
+		// if at least one file is not open
 		if (!temp1.is_open() || !temp2.is_open() || !res.is_open()) {
 			return;
 		}
 
+		// temp values
 		int temp1_value;
 		int res_value;
 
+
 		temp1 >> temp1_value;
 		res >> res_value;
-
 		while (!temp1.eof() && !res.eof()) {
 			if (temp1_value <= res_value) {
 				temp2 << temp1_value << std::endl;
-				temp1 >> res_value;
+				temp1 >> temp1_value;
 			}
 			else {
 				temp2 << res_value << std::endl;
@@ -207,6 +219,7 @@ public:
 			}
 		}
 
+		// files merge
 		while (!res.eof()) {
 			temp2 << res_value << std::endl;
 			res >> res_value;
@@ -217,10 +230,12 @@ public:
 			temp1 >> temp1_value;
 		}
 
+		// files close
 		temp1.close();
 		temp2.close();
 		res.close();
 
+		// copies the contents of the temporary file to the resulting file
 		if (!std::filesystem::copy_file("tmp2.txt", resultfilename,
 			std::filesystem::copy_options::overwrite_existing)) {
 			return;
@@ -312,12 +327,15 @@ public:
 				return;
 			}
 
+			// for process output
 			processed += size1 + size2;
 			std::cout << " string processing = " << processed << std::endl;
 
+			// implementation of sorting by merge
 			Sorting::MergeSort(part1.get(), 0, size1 - 1);
 			Sorting::MergeSort(part2.get(), 0, size2 - 1);
 
+			// merge two sorted arrays
 			FileManager::MergeToFile(part1.get(), part2.get(), size1, size2);
 			FileManager::MergeFiles(resultfilename);
 		}
