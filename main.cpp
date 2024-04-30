@@ -78,37 +78,35 @@ class FileManager
 public:
 	static void CreateRandFile(const std::string& filename)
 	{
-		// файлова€ переменна€
+		// file variable
 		std::fstream fs;
 
-		// инициализаци€ генератора
-		srand(static_cast<unsigned int>(time(NULL)));
+		// random number generator initialization
+		srand(static_cast<unsigned int>(time(nullptr)));
 
-		// константы диапазона
+		// selection range constant
 		const int low = -1'000;
 		const int high = 4'000;
 
-		// открытие фала
+		// open the file for writing to
 		fs.open(filename, std::fstream::out | std::ofstream::trunc);
 
-		// проверка открыти€ файла
+		// file opening check
 		if (!fs.is_open()) {
-			// исключение runtime_error
-			throw std::runtime_error("Failed to open file for writing.");
+			throw std::runtime_error("Failed to open file for writing");
 		}
 
 		std::cout << "File " << filename << " created\n";
 
-		// цикл наполнени€ файла числами
-		for (int i = 0; i < LINE_IN_FILE; ++i) {
+		// fill the file with numbers
+		for (int i = 0; i < LINE_IN_FILE; i++) {
 			fs << (low + rand() % high) << std::endl;
 		}
 
-		// закрытие файла
+		// close file
 		fs.close();
 
-		std::cout << "File " << filename << " full\n";
-
+		std::cout << "File " << filename << " is full\n";
 	}
 	static void MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
 	{
@@ -230,43 +228,46 @@ public:
 	}
 	static int ReadTempBlock(std::fstream& fs, std::unique_ptr<int[]>& arr)
 	{
-		// выдел€ем место под массив
+		// allocate memory for an array of size TMP_BLOCK
 		arr.reset(new int[TMP_BLOCK]);
 
-		// временный указатель
+		// temp array pointer
 		int* tmp_arr;
 
-		// цикл считывани€ блоков
+		// block position
 		int i;
-		for (i = 0; i < TMP_BLOCK && !fs.eof(); ++i) {
+		// loop until the block is read the file ends
+		for (i = 0; i < TMP_BLOCK && !fs.eof(); i++) {
 			fs >> arr[i];
 		}
 
-		// если файл не считан
+		// block empty
 		if (i == 1) {
-			// нулевой размер
+			// allocate memory
 			arr.reset();
 
 			return 0;
 		}
 
-		// когда файл меньше TMP_BLOCK
+		// if the block is smaller, we process it differently
 		if (i != TMP_BLOCK) {
-			// создаем массив
+			// allocate memory for the temp array
+			// by the amount of data in the block
 			tmp_arr = new int[i];
 
-			// заполн€ем массив
-			for (auto j = 0; j < i; ++j) {
+			// copy data into a temporary array
+			for (size_t j = 0; j < i; j++) {
 				tmp_arr[j] = arr[j];
 			}
 
-			// создаем массив
+			// update memory size
 			arr.reset(tmp_arr);
 
-			// количество элементов
+			// the block size
 			return i - 1;
 		}
 
+		// the block size
 		return TMP_BLOCK;
 	}
 	static void DeletedFiles()
@@ -282,45 +283,41 @@ class SortingManager
 public:
 	static void RunSort(const std::string& filename, std::string& resultfilename)
 	{
-		// статическа€ переменна€ обработки строк
+		// static process indicator variable
 		static int processed = 0;
 
-		// переменна€ дл€ работы с файлом
+		// file variable
 		std::fstream fs;
 
-		// открытие файла
+		// opening a file to read from
 		fs.open(filename, std::fstream::in);
 
-		// проверка открыти€ файла
+		// file opening check
 		if (!fs.is_open()) {
-			// исключение runtime_error
 			throw std::runtime_error("Failed to open file for reading.");
 		}
-		
-		// цикл пока не конец файла
+
+		// loop to the end file
 		while (!fs.eof()) {
-			// переменные указатели
+			// number block pointers
 			std::unique_ptr<int[]> part1;
 			std::unique_ptr<int[]> part2;
 
-			// получаем два блока и их размеры
+			// pointer to number blocks and their size
 			int size1 = FileManager::ReadTempBlock(fs, part1);
 			int size2 = FileManager::ReadTempBlock(fs, part2);
 
-			// провер€ем что блоки получены
+			// the blocks are gone
 			if (size1 == 0 || size2 == 0) {
 				return;
 			}
 
-			// получаем размер уже полученых блоков
 			processed += size1 + size2;
-
-			std::cout << "string processing = " << processed << std::endl;
+			std::cout << " string processing = " << processed << std::endl;
 
 			Sorting::MergeSort(part1.get(), 0, size1 - 1);
 			Sorting::MergeSort(part2.get(), 0, size2 - 1);
 
-			// 
 			FileManager::MergeToFile(part1.get(), part2.get(), size1, size2);
 			FileManager::MergeFiles(resultfilename);
 		}
@@ -335,39 +332,38 @@ int main()
 	std::string sourceFileName = "unsorted_file.txt";
 	std::string resultFileName = "sorted_file.txt";
 
+	// time tracking start
 	auto start = std::chrono::high_resolution_clock::now();
 
-	// creating a file
+	// creating a source file 
 	FileManager::CreateRandFile(sourceFileName);
 
-	// time tracking
+	// time tracking finish
 	auto finish = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> durations = finish - start;
 	std::cout << "File creation time: " << (durations.count()) / 60 << " min" << std::endl;
-	//==============
 
+	// creating a result file
 	std::fstream res;
 	res.open(resultFileName, std::fstream::out | std::ofstream::trunc);
 	res.close();
 
-	// file sorting
-	// time tracking
+	// time tracking start
 	start = std::chrono::high_resolution_clock::now();
 
-	// sorting start
+	// file sorting
 	SortingManager::RunSort(sourceFileName, resultFileName);
 
-	// time tracking
+	// time tracing finish
 	finish = std::chrono::high_resolution_clock::now();
 	durations = finish - start;
 	std::cout << "Sorting time: " << (durations.count()) / 60 << " min" << std::endl;
-	//==============
-	// 
+
 	// deletion request
-	char comm;
+	char choice;
 	std::cout << "Delete temporary files? (y/n): ";
-	std::cin >> comm;
-	if (comm == 'y' or comm == 'Y') {
+	std::cin >> choice;
+	if (choice == 'y' or choice == 'Y') {
 		// Delete temporary files
 		FileManager::DeletedFiles();
 	}
