@@ -13,63 +13,7 @@ class FileManager
 {
 public:
 	static void CreateRandFile(const std::string& filename);
-	static void MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
-	{
-		// file variable
-		std::fstream temp;
-
-		// array pointers
-		const int* first;
-		const int* second;
-
-		temp.open("tmp1.txt", std::fstream::out | std::ofstream::trunc);
-
-		// selection of the first and second arrays 
-		// depending on the value of the first element
-		if (arr1[0] < arr2[0]) {
-			first = arr1;
-			second = arr2;
-		}
-		else {
-			first = arr2;
-			second = arr1;
-			std::swap(elements1, elements2);
-		}
-
-		// file opening check
-		if (!temp.is_open())
-		{
-			throw std::runtime_error("Failed to open temp file for writing");
-		}
-
-		// value position
-		int i = 0;
-		int j = 0;
-
-		// sorting
-		while (i < elements1 && j < elements2) {
-			if (first[i] < second[j]) {
-				temp << first[i++] << std::endl;
-			}
-			else if (first[i] == second[j]) {
-				temp << first[i++] << std::endl;
-				temp << second[j++] << std::endl;
-			}
-			else {
-				temp << second[j++] << std::endl;
-			}
-		}
-		while (i < elements1) {
-			temp << first[i++] << std::endl;
-		}
-		while (j < elements2) {
-			temp << second[j++] << std::endl;
-		}
-
-		// close file
-		temp.close();
-
-	}
+	static void MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2);
 	static void MergeFiles(const std::string& resultfilename)
 	{
 		// files variables
