@@ -15,8 +15,8 @@
 
 
 // size constants
-#define LINE_IN_FILE 2'000'000
-#define TMP_BLOCK    500'000
+#define LINE_IN_FILE 20
+#define TMP_BLOCK    5
 
 
 class Sorting
@@ -112,26 +112,121 @@ public:
 	}
 	static void MergeToFile(const int* arr1, const int* arr2, int elements1, int elements2)
 	{
-		//// переменая для работы с временным файлом
-		//std::fstream temp;
+		// переменая для работы с временным файлом
+		std::fstream temp;
 
-		//// константы для сортировки двух чисел
-		//const int* first;
-		//const int* second;
+		// константы для сортировки двух чисел
+		const int* first;
+		const int* second;
 
-		//if (arr1[0] < arr2[0]) {
-		//    // константы получают значение
-		//    first = arr1;
-		//    second = arr2;
-		//}
+		if (arr1[0] < arr2[0]) {
+		    // константы получают значение
+		    first = arr1;
+		    second = arr2;
+		}
 
-		//// открытие файла
-		//temp.open("tmp1.txt", std::fstream::out | std::ofstream::trunc);
+		// открытие файла
+		temp.open("tmp1.txt", std::fstream::out | std::ofstream::trunc);
 
+		// определяем очередность массивов
+		if (arr1[0] < arr2[0]) {
+			first = arr1;
+			second = arr2;
+		}
+		else {
+			first = arr2;
+			second = arr1;
+			std::swap(elements1, elements2);
+		}
+
+		// проверка открытия файла
+		if (!temp.is_open()) {
+			// исключение runtime_error
+			throw std::runtime_error("Failed to open file for reading.");
+		}
+
+		// переменные обхода блоков
+		int i = 0;
+		int j = 0;
+
+		// цикл слияния массивов
+		while (i < elements1 && j < elements2) {
+			// значение 1 меньше значения 2
+			if (first[i] < second[j]) {
+				// пишем в txt1.txt
+				temp << first[i++] << std::endl;
+			}
+			// если значения равны
+			else if(first[i] == second[j]) {
+
+			}
+			else {
+				temp << second[j++] << std::endl;
+			}
+		}
+		// если в массиве остались элементы
+		while (i < elements1) {
+			temp << first[i++] << std::endl;
+		}
+		// если в массиве остались элементы
+		while (j < elements2) {
+			temp << second[j++] << std::endl;
+		}
+
+		temp.close();
 	}
 	static void MergeFiles(const std::string& resultfilename)
 	{
+		std::fstream res;
+		std::fstream temp1;
+		std::fstream temp2;
 
+		const std::string& tmp1 = "tmp1.txt";
+		const std::string& tmp2 = "tmp2.txt";
+
+		temp1.open(tmp1, std::fstream::in);
+		res.open(resultfilename, std::fstream::in);
+		temp2.open(tmp2, std::fstream::out | std::ofstream::trunc);
+
+		if (!temp1.is_open() || !temp2.is_open() || !res.is_open()) {
+			return;
+		}
+
+		int temp1_value;
+		int res_value;
+
+		temp1 >> temp1_value;
+		res >> res_value;
+
+		while (!temp1.eof() && !res.eof()) {
+			if (temp1_value <= res_value) {
+				temp2 << temp1_value << std::endl;
+				temp1 >> res_value;
+			}
+			else {
+				temp2 << res_value << std::endl;
+				res >> res_value;
+			}
+		}
+
+		while (!res.eof()) {
+			temp2 << res_value << std::endl;
+			res >> res_value;
+		}
+
+		while (!temp1.eof()) {
+			temp2 << temp1_value << std::endl;
+			temp1 >> temp1_value;
+		}
+
+		temp1.close();
+		temp2.close();
+		res.close();
+
+		if (!std::filesystem::copy_file("tmp2.txt", resultfilename,
+			std::filesystem::copy_options::overwrite_existing)) {
+			return;
+		}
 	}
 	static int ReadTempBlock(std::fstream& fs, std::unique_ptr<int[]>& arr)
 	{
@@ -173,11 +268,11 @@ public:
 		}
 
 		return TMP_BLOCK;
-
 	}
 	static void DeletedFiles()
 	{
-
+		std::filesystem::remove("tmp1.txt");
+		std::filesystem::remove("tmp2.txt");
 	}
 };
 
@@ -198,6 +293,7 @@ public:
 
 		// проверка открытия файла
 		if (!fs.is_open()) {
+			// исключение runtime_error
 			throw std::runtime_error("Failed to open file for reading.");
 		}
 		
@@ -207,9 +303,29 @@ public:
 			std::unique_ptr<int[]> part1;
 			std::unique_ptr<int[]> part2;
 
+			// получаем два блока и их размеры
 			int size1 = FileManager::ReadTempBlock(fs, part1);
 			int size2 = FileManager::ReadTempBlock(fs, part2);
+
+			// проверяем что блоки получены
+			if (size1 == 0 || size2 == 0) {
+				return;
+			}
+
+			// получаем размер уже полученых блоков
+			processed += size1 + size2;
+
+			std::cout << "string processing = " << processed << std::endl;
+
+			Sorting::MergeSort(part1.get(), 0, size1 - 1);
+			Sorting::MergeSort(part2.get(), 0, size2 - 1);
+
+			// 
+			FileManager::MergeToFile(part1.get(), part2.get(), size1, size2);
+			FileManager::MergeFiles(resultfilename);
 		}
+
+		fs.close();
 	}
 };
 
@@ -228,6 +344,7 @@ int main()
 	auto finish = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> durations = finish - start;
 	std::cout << "File creation time: " << (durations.count()) / 60 << " min" << std::endl;
+	//==============
 
 	std::fstream res;
 	res.open(resultFileName, std::fstream::out | std::ofstream::trunc);
@@ -244,7 +361,8 @@ int main()
 	finish = std::chrono::high_resolution_clock::now();
 	durations = finish - start;
 	std::cout << "Sorting time: " << (durations.count()) / 60 << " min" << std::endl;
-
+	//==============
+	// 
 	// deletion request
 	char comm;
 	std::cout << "Delete temporary files? (y/n): ";
