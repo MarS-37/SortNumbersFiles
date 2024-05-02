@@ -2,8 +2,8 @@
 
 
 // size constants
-#define LINE_IN_FILE	20'000'000
-#define TMP_BLOCK		5'000'000
+constexpr int LINE_IN_FILE = 20'000'000;
+constexpr int TMP_BLOCK = 5'000'000;
 
 
 void FileManager::CreateRandFile(const std::string& filename)
