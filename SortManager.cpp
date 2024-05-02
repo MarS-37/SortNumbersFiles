@@ -20,6 +20,52 @@ void SortManager::MergeSort(T* arr, int low, int high)
 		//Merge(arr, low, mid, high);
 	}
 }
+void SortManager::RunSort(const std::string& filename, std::string& resultfilename)
+{
+	// static process indicator variable
+	static int processed = 0;
+
+	// file variable
+	std::fstream fs;
+
+	// opening a file to read from
+	fs.open(filename, std::fstream::in);
+
+	// file opening check
+	if (!fs.is_open()) {
+		throw std::runtime_error("Failed to open file for reading.");
+	}
+
+	// loop to the end file
+	while (!fs.eof()) {
+		// number block pointers
+		std::unique_ptr<int[]> part1;
+		std::unique_ptr<int[]> part2;
+
+		// pointer to number blocks and their size
+		int size1 = FileManager::ReadTempBlock(fs, part1);
+		int size2 = FileManager::ReadTempBlock(fs, part2);
+
+		// the blocks are gone
+		if (size1 == 0 || size2 == 0) {
+			return;
+		}
+
+		// for process output
+		processed += size1 + size2;
+		std::cout << " string processing = " << processed << std::endl;
+
+		// implementation of sorting by merge
+		MergeSort(part1.get(), 0, size1 - 1);
+		MergeSort(part2.get(), 0, size2 - 1);
+
+		// merge two sorted arrays
+		FileManager::MergeToFile(part1.get(), part2.get(), size1, size2);
+		FileManager::MergeFiles(resultfilename);
+	}
+
+	fs.close();
+}
 template <typename T>
 void SortManager::Merge(T* arr, int low, int mid, int high)
 {
