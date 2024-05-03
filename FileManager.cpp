@@ -8,9 +8,6 @@ constexpr int TMP_BLOCK = 5'000'000;
 
 void FileManager::CreateRandFile(const std::string& filename)
 {
-	// file variable
-	std::fstream fs;
-
 	// random number generator initialization
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -18,10 +15,10 @@ void FileManager::CreateRandFile(const std::string& filename)
 	const int low = -1'000;
 	const int high = 4'000;
 
-	// open the file for writing to
-	fs.open(filename, std::fstream::out | std::ofstream::trunc);
+	// file variable
+	std::ofstream fs(filename);
 
-	// file opening check
+	// open the file for writing to opening check
 	if (!fs.is_open()) {
 		throw std::runtime_error("Failed to open file for writing");
 	}
