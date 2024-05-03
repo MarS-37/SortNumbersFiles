@@ -14,10 +14,6 @@ void FileManager::CreateRandFile(const std::string& filename)
 	// random number generator initialization
 	srand(static_cast<unsigned int>(time(nullptr)));
 
-	// selection range constant
-	const int low = -1'000;
-	const int high = 4'000;
-
 	// file variable
 	std::ofstream fs(filename);
 
@@ -30,7 +26,7 @@ void FileManager::CreateRandFile(const std::string& filename)
 
 	// fill the file with numbers		
 	for (int i = 0; i < LINE_IN_FILE; i++) {
-		fs << (low + rand() % high) << std::endl;
+		fs << (rand() % 5001 - 1000) << std::endl;
 	}
 
 	// close file
