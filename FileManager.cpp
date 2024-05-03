@@ -195,3 +195,8 @@ int FileManager::ReadTempBlock(std::fstream& fs, std::unique_ptr<int[]>& arr)
 	// the block size
 	return TMP_BLOCK;
 }
+void FileManager::DeletedFiles()
+{
+	std::filesystem::remove("tmp1.txt");
+	std::filesystem::remove("tmp2.txt");
+}
