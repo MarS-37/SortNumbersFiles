@@ -8,6 +8,9 @@ constexpr int TMP_BLOCK = 5'000'000;
 
 void FileManager::CreateRandFile(const std::string& filename)
 {
+
+	std::cout << "start file creating\n";
+
 	// random number generator initialization
 	srand(static_cast<unsigned int>(time(nullptr)));
 
